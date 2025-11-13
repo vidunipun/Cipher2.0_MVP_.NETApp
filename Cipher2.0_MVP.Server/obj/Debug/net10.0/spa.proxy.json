@@ -1,0 +1,10 @@
+{
+"SpaProxyServer": {
+"ServerUrl": "https://localhost:11877",
+"RedirectUrl": "",
+"LaunchCommand": "npm run dev",
+"WorkingDirectory": "D:\\BU2\\CIPHER2.0_MVP\\CIPHER2.0_MVP_.NET_Application\\Cipher2.0_MVP\\Cipher2.0_MVP.Server\\..\\cipher2.0_mvp.client",
+"MaxTimeoutInSeconds": "120",
+"KeepRunning": "false"
+}
+}

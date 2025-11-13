@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/Solution Items/" />
+  <Project Path="cipher2.0_mvp.client/cipher2.0_mvp.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="Cipher2.0_MVP.Server/Cipher2.0_MVP.Server.csproj" />
+</Solution>
