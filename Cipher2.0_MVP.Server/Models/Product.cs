@@ -22,6 +22,7 @@ namespace SentimentAnalysis.API.Models
         public double Workmanship { get; set; }
         public double Durability { get; set; }
         public double Price { get; set; }
+        public List<string> Images { get; set; } = new List<string>();
 
         // Ratings
         public double Rating { get; set; }
