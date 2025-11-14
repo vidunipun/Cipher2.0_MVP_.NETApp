@@ -1,0 +1,50 @@
+# ----------------------
+# .NET / C# Standard
+# ----------------------
+
+# Build outputs
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio directories
+.vs/
+.vscode/
+
+# Rider IDE
+.idea/
+
+# Temporary files
+*.log
+*.vspscc
+*.vssscc
+*.dbmdl
+
+# Publish outputs
+publish/
+
+# NuGet packages
+*.nupkg
+packages/
+
+# EF Core Migrations (optional: include if you want migration source code in Git)
+Migrations/
+
+# ----------------------
+# Cosmos DB Emulator
+# ----------------------
+CosmosDB.Emulator/
+
+# ----------------------
+# OS / Misc
+# ----------------------
+*.DS_Store
+Thumbs.db
+*.bak
+*.swp
