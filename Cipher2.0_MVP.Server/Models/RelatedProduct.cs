@@ -6,6 +6,6 @@ namespace SentimentAnalysis.API.Models
         public Product Product { get; set; }
 
         public int RelatedProductId { get; set; }
-        public Product RelatedTo { get; set; }
+        public Product Related { get; set; }
     }
 }
