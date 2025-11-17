@@ -11,7 +11,7 @@ namespace SentimentAnalysis.API.Models
 
         // Partition key should match Id (or another string field)
         public string PartitionKey => Id;
-        public int ReviewId { get; set; }
+        public string ReviewId { get; set; }
         public string ReviewKey { get; set; }
         public int ProductId { get; set; }
         public Product Product { get; set; }
