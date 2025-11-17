@@ -6,11 +6,11 @@ namespace SentimentAnalysis.API.Models
     public class Product
     {
         public int ProductId { get; set; }
-        public required string ProductKey { get; set; }
-        public required string ProductName { get; set; }
-        public required string Brand { get; set; }
-        public required string Category { get; set; }
-        public required string Description { get; set; }
+        public string ProductKey { get; set; }
+        public string ProductName { get; set; }
+        public string Brand { get; set; }
+        public string Category { get; set; }
+        public string Description { get; set; }
 
         // Attributes
         public double Fit { get; set; }
@@ -35,13 +35,15 @@ namespace SentimentAnalysis.API.Models
 
         // Relationships
         public int? ProductLineId { get; set; }
-        public required ProductLine ProductLine { get; set; }
+        public ProductLine ProductLine { get; set; }
         public int? GroupId { get; set; }
-        public required ProductGroup ProductGroup { get; set; }
-        public required ICollection<Review> Reviews { get; set; }
-        public required ICollection<ProductKeyword> ProductKeywords { get; set; }
-        public required ICollection<ProductSellingPoint> ProductSellingPoints { get; set; }
-        public required ICollection<RelatedProduct> RelatedProducts { get; set; }
+        public ProductGroup ProductGroup { get; set; }
+        public ICollection<Review> Reviews { get; set; }
+        public ICollection<ProductKeyword> ProductKeywords { get; set; }
+        public ICollection<ProductSellingPoint> ProductSellingPoints { get; set; }
+        public ICollection<RelatedProduct> RelatedProducts { get; set; }
+        public ICollection<UserFavorite> UserFavorites { get; set; } = new List<UserFavorite>();
+
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;

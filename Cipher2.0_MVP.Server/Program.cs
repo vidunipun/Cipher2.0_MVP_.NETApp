@@ -5,8 +5,16 @@ using Microsoft.Azure.Cosmos;
 var builder = WebApplication.CreateBuilder(args);
 
 // SQL Server DbContext for local testing
+// builder.Services.AddDbContext<AppDbContext>(options =>
+//     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseCosmos(
+        builder.Configuration["Cosmos:Endpoint"],
+        builder.Configuration["Cosmos:Key"],
+        builder.Configuration["Cosmos:Database"]
+    ));
+
 
 // Add Controllers & Swagger
 builder.Services.AddControllers();
@@ -53,6 +61,18 @@ builder.Services.AddSingleton<CosmosDbService>(sp =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    // Creates database and all containers for the DbSets if they don't exist
+    await context.Database.EnsureCreatedAsync();
+
+    // Seed data
+    await DatabaseSeeder.SeedAsync(context);
+}
+
 
 // Swagger
 if (app.Environment.IsDevelopment())

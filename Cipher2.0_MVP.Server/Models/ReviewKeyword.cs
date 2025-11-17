@@ -4,8 +4,8 @@ namespace SentimentAnalysis.API.Models
     {
         public int ReviewKeywordId { get; set; }
         public int ReviewId { get; set; }
-        public required Review Review { get; set; }
+        public Review Review { get; set; }
 
-        public required string Keyword { get; set; }
+        public string Keyword { get; set; }
     }
 }
