@@ -1,10 +1,16 @@
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace SentimentAnalysis.API.Models
 {
     public class Product
     {
+        [JsonPropertyName("id")]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+
+        // Partition key should match Id (or another string field)
+        public string PartitionKey => Id;
         public int ProductId { get; set; }
         public string ProductKey { get; set; }
         public string ProductName { get; set; }
