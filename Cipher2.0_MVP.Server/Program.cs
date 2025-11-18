@@ -11,7 +11,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseCosmos(
         accountEndpoint: "https://localhost:8081/",
         accountKey: "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
-        databaseName: "MVPAppDB"
+        databaseName: "MVPAppDB_1"
     )
 );
 
@@ -47,7 +47,7 @@ var app = builder.Build();
 await using (var scope = app.Services.CreateAsyncScope())
 {
     var cosmosClient = scope.ServiceProvider.GetRequiredService<CosmosClient>();
-    var dbName = "MVPAppDB";
+    var dbName = "MVPAppDB_1";
 
     var databaseResponse = await cosmosClient.CreateDatabaseIfNotExistsAsync(dbName);
     var database = databaseResponse.Database;
@@ -70,6 +70,7 @@ await using (var scope = app.Services.CreateAsyncScope())
     await CreateContainerIfNotExists("ProductSellingPoints", "/ProductId");
     await CreateContainerIfNotExists("UserFavorites", "/UserId");
     await CreateContainerIfNotExists("RelatedProducts", "/ProductId");
+    await CreateContainerIfNotExists("ReviewKeywords", "/ReviewId");
 
     // 5. Seed data (async, Cosmos-compatible)
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -77,20 +78,18 @@ await using (var scope = app.Services.CreateAsyncScope())
     // Ensure EF Core metadata is initialized
     await db.Database.EnsureCreatedAsync();
 
-    // Seed data using try-catch to handle duplicates
+    // Seed ProductGroups
     try
     {
-        // ProductGroups
-        var existingGroup = await db.ProductGroups.FindAsync("1");
-        if (existingGroup == null)
+        var existing = await db.ProductGroups.FindAsync("G1");
+        if (existing == null)
         {
-            var groups = new List<ProductGroup>
+            var groups = Enumerable.Range(1, 10).Select(i => new ProductGroup
             {
-                new() { Id = "1", GroupName = "Jackets" },
-                new() { Id = "2", GroupName = "Pants" },
-                new() { Id = "3", GroupName = "Shirts" },
-                new() { Id = "4", GroupName = "Shoes" }
-            };
+                Id = $"G{i}",
+                GroupName = i == 1 ? "Jackets" : $"Group {i}",
+                Description = $"Description for group {i}"
+            }).ToList();
             await db.ProductGroups.AddRangeAsync(groups);
             await db.SaveChangesAsync();
         }
@@ -100,17 +99,103 @@ await using (var scope = app.Services.CreateAsyncScope())
         Console.WriteLine($"Error seeding ProductGroups: {ex.Message}");
     }
 
+    // Seed ProductLines
     try
     {
-        // Users
-        var existingUser = await db.Users.FindAsync("U1");
-        if (existingUser == null)
+        var existing = await db.ProductLines.FindAsync("L1");
+        if (existing == null)
         {
-            var users = new List<User>
+            var lines = Enumerable.Range(1, 10).Select(i => new ProductLine
             {
-                new() { Id = "U1", UserName = "Alice", Email = "alice@example.com" },
-                new() { Id = "U2", UserName = "Bob", Email = "bob@example.com" }
-            };
+                Id = $"L{i}",
+                ProductLineName = i == 1 ? "Outdoor Clothing" : $"Line {i}",
+                Description = $"Description for line {i}"
+            }).ToList();
+            await db.ProductLines.AddRangeAsync(lines);
+            await db.SaveChangesAsync();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error seeding ProductLines: {ex.Message}");
+    }
+
+    // Seed Keywords
+    try
+    {
+        var existing = await db.Keywords.FindAsync("K1");
+        if (existing == null)
+        {
+            var keywords = Enumerable.Range(1, 10).Select(i => new Keyword
+            {
+                Id = $"K{i}",
+                Word = i switch
+                {
+                    1 => "Warm",
+                    2 => "Waterproof",
+                    3 => "Lightweight",
+                    4 => "Insulated",
+                    5 => "Breathable",
+                    6 => "Windproof",
+                    7 => "Stretch",
+                    8 => "Durable",
+                    9 => "Quick-Dry",
+                    _ => $"Keyword{i}"
+                }
+            }).ToList();
+            await db.Keywords.AddRangeAsync(keywords);
+            await db.SaveChangesAsync();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error seeding Keywords: {ex.Message}");
+    }
+
+    // Seed SellingPoints
+    try
+    {
+        var existing = await db.SellingPoints.FindAsync("SP1");
+        if (existing == null)
+        {
+            var sps = Enumerable.Range(1, 10).Select(i => new SellingPoint
+            {
+                Id = $"SP{i}",
+                Point = i switch
+                {
+                    1 => "Ultra warm insulation",
+                    2 => "Seam-sealed waterproofing",
+                    3 => "Lightweight construction",
+                    4 => "Packable design",
+                    5 => "Reinforced stitching",
+                    6 => "Adjustable hood",
+                    7 => "Vent zippers",
+                    8 => "Articulated knees",
+                    9 => "Anti-microbial lining",
+                    _ => $"Selling point {i}"
+                }
+            }).ToList();
+            await db.SellingPoints.AddRangeAsync(sps);
+            await db.SaveChangesAsync();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error seeding SellingPoints: {ex.Message}");
+    }
+
+    // Seed Users
+    try
+    {
+        var existing = await db.Users.FindAsync("U1");
+        if (existing == null)
+        {
+            var users = Enumerable.Range(1, 10).Select(i => new User
+            {
+                Id = $"U{i}",
+                UserName = $"User{i}",
+                Email = $"user{i}@example.com"
+            }).ToList();
             await db.Users.AddRangeAsync(users);
             await db.SaveChangesAsync();
         }
@@ -120,17 +205,47 @@ await using (var scope = app.Services.CreateAsyncScope())
         Console.WriteLine($"Error seeding Users: {ex.Message}");
     }
 
+    // Seed Products (with Images)
     try
     {
-        // Products
-        var existingProduct = await db.Products.FindAsync("P1");
-        if (existingProduct == null)
+        var existing = await db.Products.FindAsync("P1");
+        if (existing == null)
         {
-            var products = new List<Product>
+            var linesList = await db.ProductLines.ToListAsync();
+            var groupsList = await db.ProductGroups.ToListAsync();
+
+            var products = Enumerable.Range(1, 10).Select(i => new Product
             {
-                new() { Id = "P1", ProductName = "Leather Jacket", GroupId = "1" },
-                new() { Id = "P2", ProductName = "Jeans", GroupId = "2" }
-            };
+                Id = $"P{i}",
+                ProductKey = $"PROD-{i:000}",
+                ProductId = $"PID{i}",
+                ProductName = $"Product {i}",
+                Brand = i % 2 == 0 ? "BrandA" : "BrandB",
+                Category = i % 3 == 0 ? "Pants" : "Jackets",
+                Description = $"Description for product {i}",
+                Fit = 4.0 + (i % 5) * 0.1,
+                Comfort = 3.5 + (i % 4) * 0.2,
+                Functionality = 4.0,
+                Aesthetics = 3.8,
+                Performance = 4.1,
+                Quality = 4.2,
+                Workmanship = 4.0,
+                Durability = 3.9 + (i % 3) * 0.1,
+                Price = 99 + i,
+                Images = new List<string>
+                {
+                    $"https://example.com/images/product{i}_1.jpg",
+                    $"https://example.com/images/product{i}_2.jpg"
+                },
+                Rating = 4.0 + (i % 5) * 0.1,
+                SentPositive = 10 * i,
+                SentNeutral = i,
+                SentNegative = i / 2,
+                AverageSentimentScore = 0.5 + (i % 5) * 0.05,
+                ProductLineId = linesList[(i - 1) % linesList.Count].Id,
+                GroupId = groupsList[(i - 1) % groupsList.Count].Id
+            }).ToList();
+
             await db.Products.AddRangeAsync(products);
             await db.SaveChangesAsync();
         }
@@ -140,24 +255,133 @@ await using (var scope = app.Services.CreateAsyncScope())
         Console.WriteLine($"Error seeding Products: {ex.Message}");
     }
 
+    // Seed ProductKeywords
     try
     {
-        // Reviews (partition key = ProductId)
-        var existingReview = await db.Reviews.FindAsync("R1");
-        if (existingReview == null)
+        var existing = await db.ProductKeywords.FindAsync("PK1-1");
+        if (existing == null)
         {
-            var reviews = new List<Review>
+            var keywordsList = await db.Keywords.ToListAsync();
+            var pkList = new List<ProductKeyword>();
+            for (int i = 1; i <= 10; i++)
             {
-                new() { Id = "R1", ProductId = "P1", Rating = 5},
-                new() { Id = "R2", ProductId = "P2", Rating = 4 }
-            };
+                pkList.Add(new ProductKeyword { Id = $"PK{i}-1", ProductId = $"P{i}", KeywordId = keywordsList[(i - 1) % keywordsList.Count].Id });
+                pkList.Add(new ProductKeyword { Id = $"PK{i}-2", ProductId = $"P{i}", KeywordId = keywordsList[(i) % keywordsList.Count].Id });
+            }
+            await db.ProductKeywords.AddRangeAsync(pkList);
+            await db.SaveChangesAsync();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error seeding ProductKeywords: {ex.Message}");
+    }
+
+    // Seed ProductSellingPoints
+    try
+    {
+        var existing = await db.ProductSellingPoints.FindAsync("PS1-1");
+        if (existing == null)
+        {
+            var spsList = await db.SellingPoints.ToListAsync();
+            var psList = new List<ProductSellingPoint>();
+            for (int i = 1; i <= 10; i++)
+            {
+                psList.Add(new ProductSellingPoint { Id = $"PS{i}-1", ProductId = $"P{i}", SellingPointId = spsList[(i - 1) % spsList.Count].Id });
+                psList.Add(new ProductSellingPoint { Id = $"PS{i}-2", ProductId = $"P{i}", SellingPointId = spsList[(i) % spsList.Count].Id });
+            }
+            await db.ProductSellingPoints.AddRangeAsync(psList);
+            await db.SaveChangesAsync();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error seeding ProductSellingPoints: {ex.Message}");
+    }
+
+    // Seed RelatedProducts
+    try
+    {
+        var existing = await db.RelatedProducts.FindAsync("RP1-1");
+        if (existing == null)
+        {
+            var relatedList = new List<RelatedProduct>();
+            for (int i = 1; i <= 10; i++)
+            {
+                var next = (i % 10) + 1;
+                var next2 = ((i + 1) % 10) + 1;
+                relatedList.Add(new RelatedProduct { Id = $"RP{i}-1", ProductId = $"P{i}", RelatedProductId = $"P{next}" });
+                relatedList.Add(new RelatedProduct { Id = $"RP{i}-2", ProductId = $"P{i}", RelatedProductId = $"P{next2}" });
+            }
+            await db.RelatedProducts.AddRangeAsync(relatedList);
+            await db.SaveChangesAsync();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error seeding RelatedProducts: {ex.Message}");
+    }
+
+    // Seed Reviews and ReviewKeywords
+    try
+    {
+        var existing = await db.Reviews.FindAsync("R1");
+        if (existing == null)
+        {
+            var reviews = new List<Review>();
+            var reviewKeywords = new List<ReviewKeyword>();
+            int rkCounter = 1;
+            for (int i = 1; i <= 10; i++)
+            {
+                for (int j = 1; j <= 2; j++)
+                {
+                    var reviewId = $"R{((i - 1) * 2) + j}";
+                    var review = new Review
+                    {
+                        Id = reviewId,
+                        ProductId = $"P{i}",
+                        UserName = (await db.Users.FindAsync($"U{((i - 1) % 10) + 1}"))?.UserName,
+                        ReviewText = $"Review text {reviewId}",
+                        Sentiment = j % 2 == 0 ? "Positive" : "Neutral",
+                        SentimentScore = 0.5 + (j * 0.1),
+                        Rating = 3 + j,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    reviews.Add(review);
+
+                    reviewKeywords.Add(new ReviewKeyword { Id = $"RK{rkCounter}", ReviewId = reviewId, Keyword = (await db.Keywords.FindAsync($"K{((rkCounter - 1) % 10) + 1}"))?.Word });
+                    rkCounter++;
+                }
+            }
             await db.Reviews.AddRangeAsync(reviews);
+            await db.ReviewKeywords.AddRangeAsync(reviewKeywords);
             await db.SaveChangesAsync();
         }
     }
     catch (Exception ex)
     {
         Console.WriteLine($"Error seeding Reviews: {ex.Message}");
+    }
+
+    // Seed UserFavorites
+    try
+    {
+        var existing = await db.UserFavorites.FindAsync("UF1-1");
+        if (existing == null)
+        {
+            var favs = new List<UserFavorite>();
+            for (int i = 1; i <= 10; i++)
+            {
+                favs.Add(new UserFavorite { Id = $"UF{i}-1", UserId = $"U{i}", ProductId = $"P{((i - 1) % 10) + 1}" });
+                favs.Add(new UserFavorite { Id = $"UF{i}-2", UserId = $"U{i}", ProductId = $"P{((i) % 10) + 1}" });
+            }
+            await db.UserFavorites.AddRangeAsync(favs);
+            await db.SaveChangesAsync();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error seeding UserFavorites: {ex.Message}");
     }
 }
 
