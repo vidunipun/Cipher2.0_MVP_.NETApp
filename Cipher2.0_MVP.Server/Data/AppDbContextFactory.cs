@@ -18,7 +18,7 @@ namespace SentimentAnalysis.API.Data
             var builder = new DbContextOptionsBuilder<AppDbContext>();
 
             // If using Cosmos DB:
-            builder.UseCosmos(
+            _ = builder.UseCosmos(
                 configuration["Cosmos:Endpoint"],
                 configuration["Cosmos:Key"],
                 configuration["Cosmos:Database"]

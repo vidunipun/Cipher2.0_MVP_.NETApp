@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Cipher2.0_MVP.Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6a3793a85ce45c71b6971ea94a341cbd24f6f4cf")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+16eeb78c5fb60882784a40a3f43ca981153f65d6")]
 [assembly: System.Reflection.AssemblyProductAttribute("Cipher2.0_MVP.Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Cipher2.0_MVP.Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

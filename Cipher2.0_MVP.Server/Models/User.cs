@@ -1,19 +1,18 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace SentimentAnalysis.API.Models
 {
     public class User
     {
-        [JsonPropertyName("id")]
+        [Key]
         public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string? UserId { get; set; }
+        public string? UserName { get; set; }
+        [Required]
+        public string Email { get; set; }= null!;
 
-        // Partition key should match Id (or another string field)
-        public string PartitionKey => Id;
-        public string UserId { get; set; }
-        public string UserName { get; set; }
-        public string Email { get; set; }
-
-        public ICollection<UserFavorite> UserFavorites { get; set; } = new List<UserFavorite>();
+        public virtual ICollection<UserFavorite> UserFavorites { get; set; } = new List<UserFavorite>();
     }
 }

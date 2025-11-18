@@ -1,18 +1,23 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SentimentAnalysis.API.Models
 {
     public class RelatedProduct
     {
-        [JsonPropertyName("id")]
+        [Key]
         public string Id { get; set; } = Guid.NewGuid().ToString();
+        [Required]
+        public string? ProductId { get; set; }
 
-        // Partition key should match Id (or another string field)
-        public string PartitionKey => Id;
-        public string ProductId { get; set; }
-        public Product Product { get; set; }
+        [ForeignKey(nameof(ProductId))]
+        public virtual Product? Product { get; set; }
 
-        public int RelatedProductId { get; set; }
-        public Product Related { get; set; }
+        [Required]
+        public string? RelatedProductId { get; set; }
+        
+        [ForeignKey(nameof(RelatedProductId))]
+        public virtual Product? Related { get; set; }
     }
 }

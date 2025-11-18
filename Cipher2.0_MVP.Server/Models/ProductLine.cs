@@ -1,19 +1,17 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace SentimentAnalysis.API.Models
 {
     public class ProductLine
     {
-        [JsonPropertyName("id")]
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        [Key]
+        public string? Id { get; set; }
+        [Required]
+        public string? ProductLineName { get; set; } 
+        public string? Description { get; set; }
 
-        // Partition key should match Id (or another string field)
-        public string PartitionKey => Id;
-        public string ProductLineId { get; set; }
-        public string ProductLineName { get; set; } // e.g., “Valentine’s Collection”
-        public string Description { get; set; }
-
-        public ICollection<Product> Products { get; set; }
+        public virtual ICollection<Product>? Products { get; set; }
     }
 }

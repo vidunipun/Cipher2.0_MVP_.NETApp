@@ -1,22 +1,21 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
 namespace SentimentAnalysis.API.Models
 {
     public class Product
     {
-        [JsonPropertyName("id")]
+        [Key]
         public string Id { get; set; } = Guid.NewGuid().ToString();
-
-        // Partition key should match Id (or another string field)
-        public string PartitionKey => Id;
-        public int ProductId { get; set; }
-        public string ProductKey { get; set; }
-        public string ProductName { get; set; }
-        public string Brand { get; set; }
-        public string Category { get; set; }
-        public string Description { get; set; }
+        public string? ProductKey { get; set; }
+        public string? ProductId { get; set; }
+        public string? ProductName { get; set; }
+        public string? Brand { get; set; }
+        public string? Category { get; set; }
+        public string? Description { get; set; }
 
         // Attributes
         public double Fit { get; set; }
@@ -40,15 +39,20 @@ namespace SentimentAnalysis.API.Models
         public double AverageSentimentScore { get; set; }
 
         // Relationships
-        public int? ProductLineId { get; set; }
-        public ProductLine ProductLine { get; set; }
-        public int? GroupId { get; set; }
-        public ProductGroup ProductGroup { get; set; }
-        public ICollection<Review> Reviews { get; set; }
-        public ICollection<ProductKeyword> ProductKeywords { get; set; }
-        public ICollection<ProductSellingPoint> ProductSellingPoints { get; set; }
-        public ICollection<RelatedProduct> RelatedProducts { get; set; }
-        public ICollection<UserFavorite> UserFavorites { get; set; } = new List<UserFavorite>();
+        [ForeignKey(nameof(ProductLine))]
+        public string? ProductLineId { get; set; }
+
+        [ForeignKey(nameof(ProductLineId))]
+        public ProductLine? ProductLine { get; set; }
+
+        [ForeignKey(nameof(ProductGroup))]
+        public string? GroupId { get; set; }
+        public ProductGroup? ProductGroup { get; set; }
+        public virtual ICollection<Review>? Reviews { get; set; }
+        public virtual ICollection<ProductKeyword>? ProductKeywords { get; set; }
+        public virtual ICollection<ProductSellingPoint>? ProductSellingPoints { get; set; }
+        public virtual ICollection<RelatedProduct>? RelatedProducts { get; set; }
+        public virtual ICollection<UserFavorite>? UserFavorites { get; set; }
 
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
