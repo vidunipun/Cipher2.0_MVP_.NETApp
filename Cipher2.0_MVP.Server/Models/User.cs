@@ -1,13 +1,18 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace SentimentAnalysis.API.Models
 {
     public class User
     {
-        public int UserId { get; set; }
-        public required string UserName { get; set; }
-        public required string Email { get; set; }
+        [Key]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string? UserId { get; set; }
+        public string? UserName { get; set; }
+        [Required]
+        public string Email { get; set; }= null!;
 
-        public required ICollection<UserFavorite> Favorites { get; set; }
+        public virtual ICollection<UserFavorite> UserFavorites { get; set; } = new List<UserFavorite>();
     }
 }

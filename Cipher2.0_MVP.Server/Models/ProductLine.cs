@@ -1,13 +1,17 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace SentimentAnalysis.API.Models
 {
     public class ProductLine
     {
-        public int ProductLineId { get; set; }
-        public required string LineName { get; set; } // e.g., “Valentine’s Collection”
-        public required string Description { get; set; }
+        [Key]
+        public string? Id { get; set; }
+        [Required]
+        public string? ProductLineName { get; set; } 
+        public string? Description { get; set; }
 
-        public required ICollection<Product> Products { get; set; }
+        public virtual ICollection<Product>? Products { get; set; }
     }
 }

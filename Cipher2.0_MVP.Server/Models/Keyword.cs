@@ -1,12 +1,20 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace SentimentAnalysis.API.Models
 {
     public class Keyword
     {
-        public int KeywordId { get; set; }
-        public required string Word { get; set; }
+        [Key]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string? Word { get; set; }
 
-        public required ICollection<ProductKeyword> ProductKeywords { get; set; }
+        public virtual ICollection<ProductKeyword> ProductKeywords { get; set; }
+
+        public static implicit operator Keyword(string v)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -1,13 +1,16 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace SentimentAnalysis.API.Models
 {
     public class ProductGroup
     {
-        public int ProductGroupId { get; set; }
-        public required string GroupName { get; set; } 
-        public required string Description { get; set; }
+        [Key]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string? GroupName { get; set; } 
+        public string? Description { get; set; }
 
-        public required ICollection<Product> Products { get; set; }
+        public virtual ICollection<Product>? Products { get; set; }
     }
 }
