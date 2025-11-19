@@ -4,6 +4,7 @@ using SentimentAnalysis.API.Data;
 using SentimentAnalysis.API.DTOs.Product;
 using SentimentAnalysis.API.DTOs.Review;
 using SentimentAnalysis.API.Models;
+using SentimentAnalysis.API.Services; // <-- Make sure this is here for IProductRelationService
 
 namespace SentimentAnalysis.API.Services;
 
@@ -11,11 +12,13 @@ public class ProductService : IProductService
 {
     private readonly AppDbContext _db;
     private readonly IMapper _mapper;
+    private readonly IProductRelationService _relationService; // optional but recommended
 
-    public ProductService(AppDbContext db, IMapper mapper)
+    public ProductService(AppDbContext db, IMapper mapper, IProductRelationService relationService)
     {
         _db = db;
         _mapper = mapper;
+        _relationService = relationService;
     }
 
     public async Task<object> GetProductsAsync(int page, int pageSize, string? brand, string? groupId, string? productLineId, string? q)
@@ -40,9 +43,15 @@ public class ProductService : IProductService
 
     public async Task<object> SearchProductsAsync(string q, int page, int pageSize)
     {
-        var query = _db.Products.AsNoTracking().Where(p => p.ProductName!.Contains(q) || p.Description!.Contains(q));
+        var query = _db.Products.AsNoTracking()
+            .Where(p => p.ProductName!.Contains(q) || p.Description!.Contains(q));
+
         var total = await query.CountAsync();
-        var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
         var dtos = items.Select(p => _mapper.Map<ProductListItemDto>(p)).ToList();
         return new { total, page, pageSize, items = dtos };
     }
@@ -54,48 +63,77 @@ public class ProductService : IProductService
 
         var pkTask = _db.ProductKeywords.Where(pk => pk.ProductId == id).AsNoTracking().ToListAsync();
         var psTask = _db.ProductSellingPoints.Where(ps => ps.ProductId == id).AsNoTracking().ToListAsync();
-        var relatedTask = _db.RelatedProducts.Where(rp => rp.ProductId == id).AsNoTracking().ToListAsync();
         var reviewsTask = _db.Reviews.Where(r => r.ProductId == id).AsNoTracking().ToListAsync();
 
-        await Task.WhenAll(pkTask, psTask, relatedTask, reviewsTask);
+        // Use service for related products (cleaner!)
+        var relatedProductsTask = _relationService.GetRelatedProductsAsync(id);
+
+        await Task.WhenAll(pkTask, psTask, reviewsTask, relatedProductsTask);
 
         var dto = _mapper.Map<ProductDetailDto>(product);
 
-        dto.Keywords = pkTask.Result.Select(p => p.KeywordId).Where(x => x != null).ToList()!;
+        // Keywords
+        dto.Keywords = pkTask.Result
+            .Select(p => p.KeywordId)
+            .Where(x => x != null)
+            .ToList()!;
 
-        var spIds = psTask.Result.Select(x => x.SellingPointId).Where(x => x != null).ToList();
-        if (spIds.Any())
-        {
-            var sps = await _db.SellingPoints.Where(s => spIds.Contains(s.Id)).ToListAsync();
-            dto.SellingPoints = sps.Select(s => s.Point ?? string.Empty).ToList();
-        }
-        else
-        {
-            dto.SellingPoints = new List<string>();
-        }
+        // Selling Points
+        var spIds = psTask.Result
+            .Select(x => x.SellingPointId)
+            .Where(x => x != null)
+            .ToList();
 
-        var relatedIds = relatedTask.Result.Select(r => r.RelatedProductId).Where(x => x != null).ToList();
-        if (relatedIds.Any())
-        {
-            var relatedProducts = await _db.Products.Where(p => relatedIds.Contains(p.Id)).ToListAsync();
-            dto.RelatedProducts = relatedProducts.Select(p => _mapper.Map<ProductListItemDto>(p)).ToList();
-        }
-        else
-        {
-            dto.RelatedProducts = new List<ProductListItemDto>();
-        }
+        dto.SellingPoints = spIds.Any()
+            ? (await _db.SellingPoints.Where(s => spIds.Contains(s.Id)).ToListAsync())
+                .Select(s => s.Point ?? string.Empty)
+                .ToList()
+            : new List<string>();
 
-        dto.Reviews = reviewsTask.Result.Select(r => _mapper.Map<ReviewDto>(r)).ToList();
+        // Related Products
+        dto.RelatedProducts = relatedProductsTask.Result
+            .Select(p => _mapper.Map<ProductListItemDto>(p))
+            .ToList();
+
+        // Reviews
+        dto.Reviews = reviewsTask.Result
+            .Select(r => _mapper.Map<ReviewDto>(r))
+            .ToList();
 
         return dto;
     }
 
     public async Task<List<ProductListItemDto>> GetRelatedAsync(string id)
     {
-        var relatedLinks = await _db.RelatedProducts.Where(rp => rp.ProductId == id).AsNoTracking().ToListAsync();
-        var relatedIds = relatedLinks.Select(r => r.RelatedProductId).Where(x => x != null).Distinct().ToList();
-        if (!relatedIds.Any()) return new List<ProductListItemDto>();
-        var relatedProducts = await _db.Products.Where(p => relatedIds.Contains(p.Id)).AsNoTracking().ToListAsync();
-        return relatedProducts.Select(p => _mapper.Map<ProductListItemDto>(p)).ToList();
+        var related = await _relationService.GetRelatedProductsAsync(id);
+        return related.Select(p => _mapper.Map<ProductListItemDto>(p)).ToList();
+    }
+
+    // THIS WAS MISSING — NOW FIXED
+    public async Task<bool> ToggleFavoriteAsync(string userId, string productId)
+    {
+        var exists = await _db.UserFavorites
+            .AnyAsync(f => f.UserId == userId && f.ProductId == productId);
+
+        if (exists)
+        {
+            var fav = await _db.UserFavorites
+                .FirstAsync(f => f.UserId == userId && f.ProductId == productId);
+            _db.UserFavorites.Remove(fav);
+            await _db.SaveChangesAsync();
+            return false; // removed
+        }
+        else
+        {
+            var fav = new UserFavorite
+            {
+                Id = Guid.NewGuid().ToString(),
+                UserId = userId,
+                ProductId = productId
+            };
+            await _db.UserFavorites.AddAsync(fav);
+            await _db.SaveChangesAsync();
+            return true; // added
+        }
     }
 }
