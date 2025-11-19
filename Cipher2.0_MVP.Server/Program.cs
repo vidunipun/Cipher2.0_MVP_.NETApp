@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SentimentAnalysis.API.Data;
 using SentimentAnalysis.API.Models;
 using User = SentimentAnalysis.API.Models.User;
+using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+// AutoMapper
+builder.Services.AddAutoMapper(typeof(SentimentAnalysis.API.Mappings.AutoMapperProfile));
 
 // 3. CosmosClient
 builder.Services.AddSingleton(sp =>
