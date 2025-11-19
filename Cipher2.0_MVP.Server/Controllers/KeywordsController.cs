@@ -1,24 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SentimentAnalysis.API.Data;
+using SentimentAnalysis.API.Services;
 
-namespace SentimentAnalysis.API.Controllers
+namespace SentimentAnalysis.API.Controllers;
+
+[ApiController]
+[Route("api/keywords")]
+public class KeywordsController : ControllerBase
 {
-    [ApiController]
-    [Route("api/keywords")]
-    public class KeywordsController : ControllerBase
-    {
-        private readonly AppDbContext _db;
-        public KeywordsController(AppDbContext db) => _db = db;
+    private readonly IReferenceDataService _refService;
 
-        // GET /api/keywords?q=
-        [HttpGet]
-        public async Task<IActionResult> List([FromQuery] string? q = null)
-        {
-            var query = _db.Keywords.AsNoTracking().AsQueryable();
-            if (!string.IsNullOrEmpty(q)) query = query.Where(k => k.Word!.Contains(q));
-            var list = await query.Take(50).ToListAsync();
-            return Ok(list);
-        }
-    }
+    public KeywordsController(IReferenceDataService refService)
+        => _refService = refService;
+
+    [HttpGet]
+    public async Task<IActionResult> List([FromQuery] string? q = null)
+        => Ok(await _refService.SearchKeywordsAsync(q));
 }
