@@ -1,7 +1,7 @@
-namespace SentimentAnalysis.API.DTOs.SellingPoint;
+namespace SentimentAnalysis.API.DTOs.Reference;
 
 public class SellingPointDto
 {
-    public string Id { get; set; } = null!;
-    public string? Point { get; set; }
+    public string Id { get; set; } = string.Empty;
+    public string Point { get; set; } = string.Empty;
 }

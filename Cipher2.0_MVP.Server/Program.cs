@@ -23,7 +23,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // AutoMapper
-builder.Services.AddAutoMapper(typeof(SentimentAnalysis.API.Mappings.AutoMapperProfile));
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 // Services
 builder.Services.AddScoped<IProductService, ProductService>();

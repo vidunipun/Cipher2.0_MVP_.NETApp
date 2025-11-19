@@ -19,5 +19,6 @@ namespace SentimentAnalysis.API.Models
         
         [ForeignKey(nameof(ProductId))]
         public virtual Product? Product { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }
