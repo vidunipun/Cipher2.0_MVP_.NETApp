@@ -1,24 +1,18 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SentimentAnalysis.API.Data;
+using SentimentAnalysis.API.Services;
 
-namespace SentimentAnalysis.API.Controllers
+[ApiController]
+[Route("api/product-lines")]
+public class ProductLinesController : ControllerBase
 {
-    [ApiController]
-    [Route("api/product-lines")]
-    public class ProductLinesController : ControllerBase
-    {
-        private readonly AppDbContext _db;
-        public ProductLinesController(AppDbContext db) => _db = db;
+    private readonly IProductRelationService _service;
 
-        // GET /api/product-lines/{id}
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(string id)
-        {
-            var pl = await _db.ProductLines.FindAsync(id);
-            if (pl == null) return NotFound();
-            var products = await _db.Products.Where(p => p.ProductLineId == id).AsNoTracking().Take(50).ToListAsync();
-            return Ok(new { productLine = pl, products });
-        }
+    public ProductLinesController(IProductRelationService service) => _service = service;
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Get(string id)
+    {
+        var result = await _service.GetProductLineWithProductsAsync(id);
+        return result is null ? NotFound() : Ok(result);
     }
 }

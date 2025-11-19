@@ -1,50 +1,42 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SentimentAnalysis.API.Data;
 using SentimentAnalysis.API.Models;
+using SentimentAnalysis.API.Services;
 
-namespace SentimentAnalysis.API.Controllers
+namespace SentimentAnalysis.API.Controllers;
+
+[ApiController]
+[Route("api/reviews")]
+public class ReviewsController : ControllerBase
 {
-    [ApiController]
-    [Route("api/reviews")]
-    public class ReviewsController : ControllerBase
+    private readonly IReviewService _reviewService;
+
+    public ReviewsController(IReviewService reviewService)
+        => _reviewService = reviewService;
+
+    [HttpGet]
+    public async Task<IActionResult> List([FromQuery] string productId)
     {
-        private readonly AppDbContext _db;
-        public ReviewsController(AppDbContext db) => _db = db;
+        if (string.IsNullOrEmpty(productId))
+            return BadRequest("productId required");
 
-        // GET /api/reviews?productId=P1
-        [HttpGet]
-        public async Task<IActionResult> List([FromQuery] string productId)
-        {
-            if (string.IsNullOrEmpty(productId)) return BadRequest("productId required");
-            var items = await _db.Reviews.Where(r => r.ProductId == productId).AsNoTracking().ToListAsync();
-            return Ok(items);
-        }
+        var reviews = await _reviewService.GetReviewsByProductAsync(productId);
+        return Ok(reviews);
+    }
 
-        // POST /api/reviews
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Review dto)
-        {
-            if (string.IsNullOrEmpty(dto.ProductId)) return BadRequest("ProductId required");
-            dto.Id = dto.Id ?? Guid.NewGuid().ToString();
-            await _db.Reviews.AddAsync(dto);
-            await _db.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
-        }
+    [HttpPost]
+    public async Task<IActionResult> Create([FromBody] Review dto)
+    {
+        if (string.IsNullOrEmpty(dto.ProductId))
+            return BadRequest("ProductId required");
 
-        // helper: GET /api/reviews/{id}?productId=...
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(string id, [FromQuery] string? productId = null)
-        {
-            if (!string.IsNullOrEmpty(productId))
-            {
-                var r = await _db.Reviews.FirstOrDefaultAsync(x => x.Id == id && x.ProductId == productId);
-                return r == null ? NotFound() : Ok(r);
-            }
+        var created = await _reviewService.CreateReviewAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+    }
 
-            // Without productId, attempt a cross-partition find via query (costly)
-            var item = await _db.Reviews.FirstOrDefaultAsync(r => r.Id == id);
-            return item == null ? NotFound() : Ok(item);
-        }
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(string id, [FromQuery] string? productId = null)
+    {
+        var review = await _reviewService.GetReviewByIdAsync(id, productId);
+        return review is null ? NotFound() : Ok(review);
     }
 }

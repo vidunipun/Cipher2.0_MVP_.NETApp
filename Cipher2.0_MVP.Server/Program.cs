@@ -4,6 +4,7 @@ using SentimentAnalysis.API.Data;
 using SentimentAnalysis.API.Models;
 using User = SentimentAnalysis.API.Models.User;
 using AutoMapper;
+using SentimentAnalysis.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,15 @@ builder.Services.AddSwaggerGen();
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(SentimentAnalysis.API.Mappings.AutoMapperProfile));
+
+// Services
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IProductRelationService, ProductRelationService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+builder.Services.AddScoped<IReferenceDataService, ReferenceDataService>();
+builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddSingleton<IComparisonService, ComparisonService>();
 
 // 3. CosmosClient
 builder.Services.AddSingleton(sp =>
