@@ -15,6 +15,6 @@ namespace SentimentAnalysis.API.Models
 
         public string? SellingPointId { get; set; }
         [ForeignKey(nameof(SellingPointId))]
-        public SellingPoint SellingPoint { get; set; }
+        public SellingPoint? SellingPoint { get; set; }
     }
 }

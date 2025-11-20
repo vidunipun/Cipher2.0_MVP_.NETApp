@@ -12,7 +12,7 @@ namespace SentimentAnalysis.API.Models
         public string? UserId { get; set; }
 
         [ForeignKey(nameof(UserId))]
-        public virtual User User { get; set; }
+        public virtual User? User { get; set; }
 
         [Required]
         public string? ProductId { get; set; }
