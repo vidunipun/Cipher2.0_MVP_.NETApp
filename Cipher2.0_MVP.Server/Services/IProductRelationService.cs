@@ -1,9 +1,14 @@
-﻿namespace SentimentAnalysis.API.Services;
+﻿using SentimentAnalysis.API.DTOs.Common;
+using SentimentAnalysis.API.DTOs.Product;
+using SentimentAnalysis.API.Models;
+
+namespace SentimentAnalysis.API.Services;
 
 public interface IProductRelationService
 {
-    Task<List<Models.Product>> GetRelatedProductsAsync(string productId);
+    Task<List<ProductListItemDto>> GetRelatedProductsAsync(string productId);
     Task<object?> GetProductLineWithProductsAsync(string productLineId);
-    Task<List<Models.ProductGroup>> GetAllProductGroupsAsync();
-    Task<object> GetProductsByGroupAsync(string groupId, int page = 1, int pageSize = 20);
+    Task<List<ProductGroup>> GetAllProductGroupsAsync();
+    Task<PaginatedResponseDto<ProductListItemDto>> GetProductsByGroupAsync(
+        string groupId, int page = 1, int pageSize = 20);
 }

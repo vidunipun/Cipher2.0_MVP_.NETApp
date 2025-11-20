@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using SentimentAnalysis.API.Services;
+using SentimentAnalysis.API.DTOs.Favorite;
 
 namespace SentimentAnalysis.API.Controllers;
 
@@ -32,5 +33,4 @@ public class UserFavoritesController : ControllerBase
         return removed ? NoContent() : NotFound();
     }
 
-    public record FavoriteDto(string UserId, string ProductId);
 }
