@@ -1,24 +1,37 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using SentimentAnalysis.API.Data;
+using SentimentAnalysis.API.DTOs.Brand;
+using SentimentAnalysis.API.DTOs.Product;
 using SentimentAnalysis.API.Models;
-
-namespace SentimentAnalysis.API.Services;
 
 public class BrandService : IBrandService
 {
     private readonly AppDbContext _db;
-    public BrandService(AppDbContext db) => _db = db;
+    private readonly IMapper _mapper;
 
-    public async Task<object> GetBrandListAsync(string? q = null)
+    public BrandService(AppDbContext db, IMapper mapper)
+    {
+        _db = db;
+        _mapper = mapper;
+    }
+
+    public async Task<List<BrandSummaryDto>> GetBrandListAsync(string? q = null)
     {
         var query = _db.Products.AsNoTracking().Where(p => p.Brand != null);
         if (!string.IsNullOrEmpty(q))
             query = query.Where(p => p.Brand!.Contains(q));
 
-        return await query
+        var result = await query
             .GroupBy(p => p.Brand)
-            .Select(g => new { brand = g.Key, count = g.Count() })
+            .Select(g => new BrandSummaryDto
+            {
+                Brand = g.Key!,
+                ProductCount = g.Count()
+            })
             .ToListAsync();
+
+        return result;
     }
 
     public async Task<List<string>> SearchBrandsAsync(string q)
@@ -37,9 +50,10 @@ public class BrandService : IBrandService
             .Take(20)
             .ToListAsync();
 
+        var dtos = _mapper.Map<List<ProductListItemDto>>(products);
         var groupIds = products.Select(p => p.GroupId).Where(g => g != null).Distinct().ToList();
 
-        return new { brand, groups = groupIds, sampleProducts = products };
+        return new { brand, groups = groupIds, sampleProducts = dtos };
     }
 
     public async Task<bool> ToggleBrandFavoriteAsync(string brand, string userId)
@@ -47,23 +61,25 @@ public class BrandService : IBrandService
         var product = await _db.Products.FirstOrDefaultAsync(p => p.Brand == brand);
         if (product == null) return false;
 
-        var existing = await _db.UserFavorites
-            .FirstOrDefaultAsync(f => f.UserId == userId && f.ProductId == product.Id);
+        var exists = await _db.UserFavorites
+            .AnyAsync(f => f.UserId == userId && f.ProductId == product.Id);
 
-        if (existing != null)
+        if (exists)
         {
-            _db.UserFavorites.Remove(existing);
+            var fav = await _db.UserFavorites.FirstAsync(f => f.UserId == userId && f.ProductId == product.Id);
+            _db.UserFavorites.Remove(fav);
             await _db.SaveChangesAsync();
-            return false; // removed
+            return false;
         }
 
         await _db.UserFavorites.AddAsync(new UserFavorite
         {
             Id = Guid.NewGuid().ToString(),
             UserId = userId,
-            ProductId = product.Id
+            ProductId = product.Id,
+            CreatedAt = DateTime.UtcNow
         });
         await _db.SaveChangesAsync();
-        return true; // added
+        return true;
     }
 }

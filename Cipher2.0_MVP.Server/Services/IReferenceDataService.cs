@@ -1,9 +1,7 @@
-﻿using SentimentAnalysis.API.Models;
-
-namespace SentimentAnalysis.API.Services;
+﻿using SentimentAnalysis.API.DTOs.Reference;
 
 public interface IReferenceDataService
 {
-    Task<List<Keyword>> SearchKeywordsAsync(string? q = null);
-    Task<List<SellingPoint>> SearchSellingPointsAsync(string? q = null);
+    Task<List<KeywordDto>> SearchKeywordsAsync(string? q = null);
+    Task<List<SellingPointDto>> SearchSellingPointsAsync(string? q = null);
 }
