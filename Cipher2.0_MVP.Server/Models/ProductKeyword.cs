@@ -17,6 +17,6 @@ namespace SentimentAnalysis.API.Models
         [Required]
         public string? KeywordId { get; set; }
         [ForeignKey(nameof(KeywordId))]
-        public virtual Keyword Keyword { get; set; }
+        public virtual Keyword? Keyword { get; set; }
     }
 }
