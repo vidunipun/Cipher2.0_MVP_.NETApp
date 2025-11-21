@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SentimentAnalysis.API.DTOs.Favorite;
 using SentimentAnalysis.API.Services;
 
 namespace SentimentAnalysis.API.Controllers;
@@ -32,6 +33,4 @@ public class BrandsController : ControllerBase
         var added = await _brandService.ToggleBrandFavoriteAsync(brand, dto.UserId);
         return added ? Ok() : NoContent();
     }
-
-    public record FavoriteDto(string UserId);
 }
